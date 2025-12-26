@@ -9,6 +9,8 @@
     .container{text-align:center;padding:40px;max-width:400px}
     h1{font-size:24px;font-weight:600;margin-bottom:16px}
     p{color:#888;font-size:16px;line-height:1.5}
+    .spinner{width:40px;height:40px;border:3px solid #333;border-top-color:#dc2626;border-radius:50%;animation:spin 1s linear infinite;margin:24px auto}
+    @keyframes spin{to{transform:rotate(360deg)}}
     .success{color:#4ade80}
     .error{color:#f87171}
   </style>
@@ -16,37 +18,25 @@
 <body>
   <div class="container">
     <h1 id="title">Completing login...</h1>
-    <p id="message">Please wait</p>
+    <p id="message">Please wait while we connect your account.</p>
+    <div class="spinner" id="spinner"></div>
   </div>
   <script>
-    // Get the auth code from URL
+    // Check for errors in URL
     const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
     const error = params.get('error');
-    const state = params.get('state');
-    
-    const title = document.getElementById('title');
-    const message = document.getElementById('message');
+    const errorDesc = params.get('error_description');
     
     if (error) {
-      title.textContent = 'Connection Failed';
-      title.className = 'error';
-      message.textContent = params.get('error_description') || error;
-    } else if (code) {
-      // Send code to extension via URL scheme
-      // The extension will pick this up
-      const extensionUrl = 'chrome-extension://jpnpcoejifhcicgnmnbfejpionkillpk/auth-callback.html?code=' + encodeURIComponent(code);
-      
-      title.textContent = 'Success!';
-      title.className = 'success';
-      message.textContent = 'Redirecting to extension...';
-      
-      // Redirect to extension
-      window.location.href = extensionUrl;
+      document.getElementById('title').textContent = 'Connection Failed';
+      document.getElementById('title').className = 'error';
+      document.getElementById('message').textContent = errorDesc || error;
+      document.getElementById('spinner').style.display = 'none';
     } else {
-      title.textContent = 'Error';
-      title.className = 'error';
-      message.textContent = 'No authorization code received';
+      // The extension's background script will detect this page
+      // and handle the token exchange automatically.
+      // This page will be closed by the extension.
+      document.getElementById('message').textContent = 'This tab will close automatically...';
     }
   </script>
 </body>
